@@ -7,17 +7,19 @@ var moment = require('moment');
 exports.saveDeviceMsg = function (obj,callback) {
 
     var now = moment().toDate();
-    console.log(now + ' Debug : saveDeviceMsg');
+    //console.log(now + ' Debug : saveDeviceMsg obj:'+JSON.stringify(obj));
 
-    var newDevice = new DeviceModel({
-        macAddr    : obj.mac,
-        data       : obj.data,
-        recv       : obj.recv,
-        date       : obj.date,
-        info       : obj.information
+    var newDevice = new DeviceModel({     
+        macAddr     : obj.mac,
+        data        : obj.data,
+        recv        : obj.recv,
+        date        : obj.date,
+        timestamp   : obj.timestamp,
+        extra       : obj.extra,
+        info        : obj.information
     });
 
-    console.log('$$$$ DeviceModel : '+JSON.stringify(newDevice));
+    //console.log('$$$$ DeviceModel : '+JSON.stringify(newDevice));
 
     newDevice.save(function(err){
         if(err){

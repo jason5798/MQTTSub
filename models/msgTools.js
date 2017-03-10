@@ -63,13 +63,14 @@ exports.parseMsg = function (msg) {
         if(mType.indexOf('aa')!=-1)
             mInfo = parseDefineMessage(mData,mType);
     }
+
+    var msg = {mac:mMac,data:mData,recv:mRecv,date:mDate,extra:mExtra,timestamp:mTimestamp};
     if(mExtra.fport>0 ){
         saveBlazingList(mExtra.fport,mMac,msg)
     }else{
         finalList[mMac]=msg;
     }
-
-    var msg = {mac:mMac,data:mData,recv:mRecv,date:mDate,extra:mExtra,timestamp:mTimestamp};
+    
     if(mInfo){
         console.log('**** '+msg.date +' mac:'+msg.mac+' => data:'+msg.data+'\ninfo:'+JSON.stringify(mInfo));
         msg.information=mInfo;

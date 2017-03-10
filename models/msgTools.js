@@ -53,7 +53,7 @@ exports.parseMsg = function (msg) {
     }
     mTimestamp = new Date(mRecv).getTime();
 
-    
+
     //Parse data
     if(mExtra.fport>0 ){
         mInfo = parseBlazingMessage(mData,mExtra.fport);
@@ -63,15 +63,18 @@ exports.parseMsg = function (msg) {
         if(mType.indexOf('aa')!=-1)
             mInfo = parseDefineMessage(mData,mType);
     }
-
-    var msg = {mac:mMac,data:mData,recv:mRecv,date:mDate,information:mInfo,extra:mExtra,timestamp:mTimestamp};
-    
     if(mExtra.fport>0 ){
         saveBlazingList(mExtra.fport,mMac,msg)
     }else{
         finalList[mMac]=msg;
     }
-    
+
+    var msg = {mac:mMac,data:mData,recv:mRecv,date:mDate,extra:mExtra,timestamp:mTimestamp};
+    if(mInfo){
+        console.log('**** '+msg.date +' mac:'+msg.mac+' => data:'+msg.data+'\ninfo:'+JSON.stringify(mInfo));
+        msg.information=mInfo;
+    }
+        
     return msg;
 }
 
@@ -89,10 +92,13 @@ exports.saveFinalListToFile = function () {
     JsonFileTools.saveJsonToFile(path,finalList);
 }
 
+exports.getFinalData = function (finalList) {
+    return ParseBlaziong.getTableData(finalList);
+}
+
 function saveBlazingList(fport,mac,msg){
     var key = "gps";
-    delete msg.information;
-    
+
     //for blazing
     if(fport === 3 || fport === 1){//GPS
         key = "gps";
@@ -125,7 +131,7 @@ function parseDefineMessage(data){
 
 function parseBlazingMessage(data,fport){
     var mInfo = {};
-    
+
     //for blazing
     if(fport === 3 || fport === 1){//GPS
         mInfo = ParseBlaziong.getTracker(data);
@@ -142,7 +148,7 @@ function parseBlazingMessage(data,fport){
 //type_tag_map is local JSON object
 function isSameTagCheck(type,mac,recv){
 	var time =  moment(recv).format('mm');
-	
+
 	//Get number of tag
 	var tmp = mData.substring(4,6);
 	var mTag = parseInt(tmp,16)*100;//流水號:百位

@@ -1,21 +1,9 @@
 //Parse data ------------------------------------start
 exports.getTracker = function (raw) {
-    var ret = {
-            CustomerID : 0,
-            ProductID  : 0,
-            DeviceType : 0,
-            report     : 0,
-            operationID: 0,
-            GPS_STA    : 0,
-            GPS_N      : 9,
-            GPS_E      : 9,
-            gps_day    : '0',
-            gps_time   : '0',
-            BATL       : '0'
-        };
+
     if (raw.length !== 34)  {
         //console.log('Not a tracker data :'+msg.payload.mac);
-        return ret;
+        return null;
     }
     var buff = new Buffer(raw, 'hex');
     var CustomerID = buff[0];
@@ -57,7 +45,7 @@ exports.getTracker = function (raw) {
         gps_time = "0" + gps_time;
     }
 
-    ret = {
+    var ret = {
         CustomerID : CustomerID,
         ProductID  : ProductID,
         DeviceType : DeviceType,
@@ -81,21 +69,18 @@ exports.getTracker = function (raw) {
     }
 
     return ret;
-
 };
 
 exports.getPIR = function (raw) {
-    var ret = {
-            trigger    : 9
-        };
+
     if (raw.length !== 14)  {
         //node.warn('Not a PIR data');
-        return ret;
+        return null;
     }
     var buff = new Buffer(raw, 'hex');
     var trigger = (buff[6] & 0x02) ? "1" : "0";  //PB7
 
-    ret = {
+    var ret = {
         trigger      : trigger/*,
         BATL : batteryLevel*/
     };
@@ -104,19 +89,16 @@ exports.getPIR = function (raw) {
 };
 
 exports.getPM25 = function (raw) {
-    var ret = {
-            value        : 9,
-            BATL         : '0'
-        };
+
     if (raw.length !== 10)  {
         //node.warn('Not a PM2.5 data');
-        return ret;
+        return null;
     }
     var buff = new Buffer(raw, 'hex');
     var value = (buff[1]*256 + buff[2])/1024*5*900;
     var batteryLevel = (buff[0] * (83/56) / 10).toString();
 
-    ret = {
+    var ret = {
         value        : value,
         BATL : batteryLevel
     };
@@ -125,24 +107,73 @@ exports.getPM25 = function (raw) {
 };
 
 exports.getFlood = function (raw) {
-    var ret = {
-            trigger      : 9,
-            BATL         : '0'
-        };
+
    if (raw.length !== 14)  {
         //node.warn('Not a Flood data');
-        return ret;
+        return null;
     }
     var buff = new Buffer(raw, 'hex');
     //var batteryLevel = (buff[1] / 10 ).toString();
     var batteryLevel = (buff.readUInt16BE(2) * (83/56) / 10).toString();
     var trigger = (buff[6] & 0x02) ? "1" : "0";
 
-    ret = {
+    var ret = {
         trigger      : trigger,
         BATL : batteryLevel
     };
 
     return ret;
 };
+
+exports.getTableData = function (finalist) {
+    var mItem = 1;
+    var array = [];
+    if(finalist){
+
+        //console.log( 'Last Device Information \n '+JSON.stringify( mObj));
+
+        for (var mac in finalist)
+        {
+            console.log( '#### '+mac + ': ' + JSON.stringify(finalist[mac]) );
+
+            array.push(getArray(finalist[mac],mItem));
+            mItem++;
+        }
+    }
+
+    var dataString = JSON.stringify(array);
+    if(array.length===0){
+        dataString = null;
+    }
+    return dataString;
+};
+
+function getArray(obj,item){
+
+    var arr = [];
+    var connection_ok = "<img src='/icons/connection_ok.png' width='30' height='30' name='status'>";
+    var connection_fail = "<img src='/icons/connection_fail.png' width='30' height='30' name='status'>";
+    if(item<10){
+        arr.push('0'+item);
+    }else{
+        arr.push(item.toString());
+    }
+
+    arr.push(obj.mac);
+    arr.push(obj.date);
+    arr.push(obj.extra.rssi);
+    arr.push(obj.extra.snr);
+    console.log('obj.overtime :'+obj.overtime);
+
+
+    if( obj.overtime){
+        arr.push(connection_fail);
+        //console.log('overtime = true');
+    }else{
+        arr.push(connection_ok);
+        //console.log('overtime = false');
+    }
+    //console.log('arr = '+JSON.stringify(arr));
+    return arr;
+}
 //Parse data ------------------------------------end
